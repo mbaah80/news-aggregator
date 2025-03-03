@@ -158,7 +158,7 @@ const NewsFilters: React.FC = () => {
             size="large"
             icon={<ClearOutlined />}
             onClick={handleReset}
-            className="rounded-lg px-6 hover:shadow-sm transition-shadow"
+            className="rounded-lg px-6 hover:shadow-sm transition-shadow md:mr-2"
           >
             Clear All
           </Button>
