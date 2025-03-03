@@ -1,9 +1,20 @@
 import React, { useEffect } from 'react'
-import { Row, Col, Spin, Empty, Alert } from 'antd'
+import { Row, Col, Empty, Alert } from 'antd'
 import { useNewsStore } from '../store'
 import NewsCard from '../components/NewsCard'
+import NewsCardSkeleton from '../components/NewsCardSkeleton'
 import NewsFilters from '../components/NewsFilters'
 import { fetchAllNews } from '../services/api'
+
+const LoadingSkeletons = () => (
+  <Row gutter={[24, 24]} className="animate-fade-in">
+    {[...Array(6)].map((_, index) => (
+      <Col xs={24} md={12} lg={8} key={index}>
+        <NewsCardSkeleton />
+      </Col>
+    ))}
+  </Row>
+)
 
 const HomePage: React.FC = () => {
   const { 
@@ -73,11 +84,12 @@ const HomePage: React.FC = () => {
           {/* Content Section */}
           <div className="bg-white rounded-xl shadow-sm p-8">
             {isLoading ? (
-              <div className="flex justify-center items-center min-h-[400px]">
-                <Spin size="large" />
-              </div>
+              <LoadingSkeletons />
             ) : articles.length > 0 ? (
-              <Row gutter={[24, 24]} className="animate-fade-in">
+              <Row 
+                gutter={[24, 24]} 
+                className="animate-fade-in"
+              >
                 {articles.map(article => (
                   <Col xs={24} md={12} lg={8} key={article.id}>
                     <NewsCard article={article} />
