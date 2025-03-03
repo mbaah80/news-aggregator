@@ -1,29 +1,30 @@
-import React, { useState } from 'react'
-import { Card, Typography, Space, Tag, Tooltip } from 'antd'
-import { 
-  CalendarOutlined, 
-  UserOutlined, 
+import React, { useState } from "react";
+import { Card, Typography, Space, Tag, Tooltip } from "antd";
+import {
+  CalendarOutlined,
+  UserOutlined,
   HeartOutlined,
   HeartFilled,
-  ShareAltOutlined
-} from '@ant-design/icons'
-import { NewsArticle } from '../types'
-import { useNewsStore } from '../store'
+  ShareAltOutlined,
+} from "@ant-design/icons";
+import { NewsArticle } from "../types";
+import { useNewsStore } from "../store";
 
-const { Text, Paragraph } = Typography
+const { Text, Paragraph } = Typography;
 
 // Use a placeholder image URL (you can replace this with any other default news image URL)
-const DEFAULT_IMAGE_URL = 'https://placehold.co/600x400/e2e8f0/475569?text=News'
+const DEFAULT_IMAGE_URL =
+  "https://placehold.co/600x400/e2e8f0/475569?text=News";
 
 interface NewsCardProps {
-  article: NewsArticle
+  article: NewsArticle;
 }
 
 const NewsCard: React.FC<NewsCardProps> = ({ article }) => {
-  const { toggleFavorite, isFavorite } = useNewsStore()
-  const [isHovered, setIsHovered] = useState(false)
-  const [isAnimating, setIsAnimating] = useState(false)
-  
+  const { toggleFavorite, isFavorite } = useNewsStore();
+  const [isHovered, setIsHovered] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+
   const {
     id,
     title,
@@ -33,74 +34,74 @@ const NewsCard: React.FC<NewsCardProps> = ({ article }) => {
     publishedAt,
     source,
     author,
-    category = 'general'
-  } = article
+    category = "general",
+  } = article;
 
-  const formattedDate = new Date(publishedAt).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  })
+  const formattedDate = new Date(publishedAt).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 
-  const categoryColor = {
-    business: 'blue',
-    technology: 'cyan',
-    sports: 'green',
-    entertainment: 'magenta',
-    politics: 'red',
-    world: 'orange',
-    science: 'purple',
-    health: 'lime'
-  }[(category || '').toLowerCase()] || 'default'
+  const categoryColor =
+    {
+      business: "blue",
+      technology: "cyan",
+      sports: "green",
+      entertainment: "magenta",
+      politics: "red",
+      world: "orange",
+      science: "purple",
+      health: "lime",
+    }[(category || "").toLowerCase()] || "default";
 
   // Format author name to prevent overflow
   const formatAuthor = (author: string | null) => {
-    if (!author) return null
-    const name = author.replace('By ', '')
-    return name.length > 20 ? `${name.substring(0, 20)}...` : name
-  }
+    if (!author) return null;
+    const name = author.replace("By ", "");
+    return name.length > 20 ? `${name.substring(0, 20)}...` : name;
+  };
 
-  const isFavorited = isFavorite(id)
+  const isFavorited = isFavorite(id);
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
-    e.preventDefault()
-    setIsAnimating(true)
-    toggleFavorite(article)
-    setTimeout(() => setIsAnimating(false), 500)
-  }
+    e.preventDefault();
+    setIsAnimating(true);
+    toggleFavorite(article);
+    setTimeout(() => setIsAnimating(false), 500);
+  };
 
   const handleShare = async (e: React.MouseEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     try {
       await navigator.share({
         title: title,
         text: description,
-        url: url
-      })
+        url: url,
+      });
     } catch (error) {
       // Fallback to copying to clipboard
-      navigator.clipboard.writeText(url)
+      navigator.clipboard.writeText(url);
     }
-  }
+  };
 
   return (
     <Card
       hoverable
       className="h-full transition-all duration-300 hover:shadow-md relative group overflow-hidden rounded-xl border-0"
-      bodyStyle={{ padding: '16px' }}
       cover={
         <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
           <img
             alt={title}
             src={imageUrl || DEFAULT_IMAGE_URL}
             onError={(e) => {
-              const target = e.target as HTMLImageElement
-              target.src = DEFAULT_IMAGE_URL
+              const target = e.target as HTMLImageElement;
+              target.src = DEFAULT_IMAGE_URL;
             }}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          
+
           {/* Action Buttons */}
           <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             <Tooltip title="Share">
@@ -111,13 +112,19 @@ const NewsCard: React.FC<NewsCardProps> = ({ article }) => {
                 <ShareAltOutlined className="text-gray-600 text-lg" />
               </button>
             </Tooltip>
-            
-            <Tooltip title={isFavorited ? "Remove from favorites" : "Add to favorites"}>
+
+            <Tooltip
+              title={isFavorited ? "Remove from favorites" : "Add to favorites"}
+            >
               <button
                 onClick={handleFavoriteClick}
                 className={`w-10 h-10 rounded-full flex items-center justify-center
                   transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105
-                  ${isFavorited ? 'bg-red-500 hover:bg-red-600' : 'bg-white/90 backdrop-blur-sm hover:bg-white'}`}
+                  ${
+                    isFavorited
+                      ? "bg-red-500 hover:bg-red-600"
+                      : "bg-white/90 backdrop-blur-sm hover:bg-white"
+                  }`}
               >
                 {isFavorited ? (
                   <HeartFilled className="text-white text-lg" />
@@ -129,17 +136,17 @@ const NewsCard: React.FC<NewsCardProps> = ({ article }) => {
           </div>
 
           {/* Category Badge */}
-          <Tag 
+          <Tag
             color={categoryColor}
             className="absolute bottom-4 left-4 m-0 uppercase text-xs tracking-wider font-medium px-3 py-1 rounded-full"
           >
-            {category || 'General'}
+            {category || "General"}
           </Tag>
         </div>
       }
     >
       <div className="space-y-3">
-        <div className="flex items-center justify-between text-xs text-gray-500">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between text-xs text-gray-500">
           <Text type="secondary" className="font-medium">
             {source.name}
           </Text>
@@ -152,16 +159,12 @@ const NewsCard: React.FC<NewsCardProps> = ({ article }) => {
                 </Space>
               </Tooltip>
             )}
-            <Space>
-              <CalendarOutlined />
-              <span>{formattedDate}</span>
-            </Space>
           </Space>
         </div>
 
-        <a 
-          href={url} 
-          target="_blank" 
+        <a
+          href={url}
+          target="_blank"
           rel="noopener noreferrer"
           className="block group/title"
         >
@@ -181,9 +184,13 @@ const NewsCard: React.FC<NewsCardProps> = ({ article }) => {
         >
           {description}
         </Paragraph>
+        <Space>
+          <CalendarOutlined />
+          <span>{formattedDate}</span>
+        </Space>
       </div>
     </Card>
-  )
-}
+  );
+};
 
-export default NewsCard 
+export default NewsCard;

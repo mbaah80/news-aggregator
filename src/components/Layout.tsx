@@ -39,7 +39,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           }
         }}
       >
-        <div className="p-4 text-white text-center font-bold text-xl">
+        <div className="text-white text-center font-bold text-xl">
           {!collapsed && "News Aggregator"}
         </div>
         <Menu
@@ -79,7 +79,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <Content className="m-6">
           <div
             style={{
-              padding: 24,
               minHeight: 360,
               background: colorBgContainer,
               borderRadius: borderRadiusLG,

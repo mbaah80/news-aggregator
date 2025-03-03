@@ -7,9 +7,9 @@ import NewsFilters from '../components/NewsFilters'
 import { fetchAllNews } from '../services/api'
 
 const LoadingSkeletons = () => (
-  <Row gutter={[24, 24]} className="animate-fade-in">
+  <Row gutter={[16, 16]} className="animate-fade-in">
     {[...Array(6)].map((_, index) => (
-      <Col xs={24} md={12} lg={8} key={index}>
+      <Col xs={24} sm={12} lg={8} key={index}>
         <NewsCardSkeleton />
       </Col>
     ))}
@@ -65,8 +65,8 @@ const HomePage: React.FC = () => {
   
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="space-y-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+        <div className="space-y-4 sm:space-y-8">
           {/* Filters Section */}
           <NewsFilters />
           
@@ -82,16 +82,16 @@ const HomePage: React.FC = () => {
           )}
           
           {/* Content Section */}
-          <div className="bg-white rounded-xl shadow-sm p-8">
+          <div className="bg-white rounded-xl shadow-sm p-2 sm:p-8">
             {isLoading ? (
               <LoadingSkeletons />
             ) : articles.length > 0 ? (
               <Row 
-                gutter={[24, 24]} 
+                gutter={[16, 16]} 
                 className="animate-fade-in"
               >
                 {articles.map(article => (
-                  <Col xs={24} md={12} lg={8} key={article.id}>
+                  <Col xs={24} sm={12} lg={8} key={article.id}>
                     <NewsCard article={article} />
                   </Col>
                 ))}
@@ -99,11 +99,11 @@ const HomePage: React.FC = () => {
             ) : (
               <Empty 
                 description={
-                  <span className="text-gray-500 text-lg">
+                  <span className="text-gray-500 text-base sm:text-lg">
                     No news articles found. Try adjusting your filters.
                   </span>
                 }
-                className="min-h-[400px] flex flex-col items-center justify-center"
+                className="min-h-[300px] sm:min-h-[400px] flex flex-col items-center justify-center"
               />
             )}
           </div>
