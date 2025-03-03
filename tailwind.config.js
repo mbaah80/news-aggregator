@@ -5,7 +5,20 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      keyframes: {
+        heartbeat: {
+          '0%': { transform: 'scale(1)' },
+          '25%': { transform: 'scale(1.1)' },
+          '50%': { transform: 'scale(1)' },
+          '75%': { transform: 'scale(1.1)' },
+          '100%': { transform: 'scale(1)' },
+        }
+      },
+      animation: {
+        heartbeat: 'heartbeat 0.5s ease-in-out',
+      }
+    },
   },
   plugins: [],
   corePlugins: {

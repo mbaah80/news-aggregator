@@ -1,11 +1,9 @@
 import React, { useEffect } from 'react'
-import { Row, Col, Spin, Empty, Alert, Typography } from 'antd'
+import { Row, Col, Spin, Empty, Alert } from 'antd'
 import { useNewsStore } from '../store'
 import NewsCard from '../components/NewsCard'
 import NewsFilters from '../components/NewsFilters'
 import { fetchAllNews } from '../services/api'
-
-const { Title } = Typography
 
 const HomePage: React.FC = () => {
   const { 
@@ -55,38 +53,50 @@ const HomePage: React.FC = () => {
   }, [searchQuery, selectedCategory, selectedDateRange, selectedSources])
   
   return (
-    <div>
-     
-      <NewsFilters />
-      
-      {error && (
-        <Alert
-          message="Error"
-          description={error}
-          type="error"
-          showIcon
-          className="mb-6"
-        />
-      )}
-      
-      {isLoading ? (
-        <div className="flex justify-center items-center py-20">
-          <Spin size="large" />
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="space-y-8">
+          {/* Filters Section */}
+          <NewsFilters />
+          
+          {/* Error Alert */}
+          {error && (
+            <Alert
+              message="Error"
+              description={error}
+              type="error"
+              showIcon
+              className="rounded-xl shadow-sm"
+            />
+          )}
+          
+          {/* Content Section */}
+          <div className="bg-white rounded-xl shadow-sm p-8">
+            {isLoading ? (
+              <div className="flex justify-center items-center min-h-[400px]">
+                <Spin size="large" />
+              </div>
+            ) : articles.length > 0 ? (
+              <Row gutter={[24, 24]} className="animate-fade-in">
+                {articles.map(article => (
+                  <Col xs={24} md={12} lg={8} key={article.id}>
+                    <NewsCard article={article} />
+                  </Col>
+                ))}
+              </Row>
+            ) : (
+              <Empty 
+                description={
+                  <span className="text-gray-500 text-lg">
+                    No news articles found. Try adjusting your filters.
+                  </span>
+                }
+                className="min-h-[400px] flex flex-col items-center justify-center"
+              />
+            )}
+          </div>
         </div>
-      ) : articles.length > 0 ? (
-        <Row gutter={[16, 16]}>
-          {articles.map(article => (
-            <Col xs={24} sm={12} lg={8} xl={6} key={article.id}>
-              <NewsCard article={article} />
-            </Col>
-          ))}
-        </Row>
-      ) : (
-        <Empty 
-          description="No news articles found. Try adjusting your filters." 
-          className="py-20"
-        />
-      )}
+      </div>
     </div>
   )
 }

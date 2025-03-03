@@ -8,14 +8,17 @@ export interface NewsArticleSource {
 export interface NewsArticle {
   id: string
   title: string
-  description: string | null
-  content: string | null
+  description: string
+  content: string
   url: string
   imageUrl: string | null
   publishedAt: string
-  source: NewsArticleSource
+  source: {
+    id: string | null
+    name: string
+  }
   author: string | null
-  category: string | null
+  category?: string
 }
 
 export interface UserPreferences {

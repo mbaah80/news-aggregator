@@ -1,84 +1,186 @@
-import React from 'react'
-import { Card, Typography, Space, Tag, Button } from 'antd'
-import { StarOutlined, StarFilled } from '@ant-design/icons'
-import { format } from 'date-fns'
+import React, { useState } from 'react'
+import { Card, Typography, Space, Tag, Tooltip } from 'antd'
+import { 
+  CalendarOutlined, 
+  UserOutlined, 
+  HeartOutlined,
+  HeartFilled,
+  ShareAltOutlined
+} from '@ant-design/icons'
 import { NewsArticle } from '../types'
 import { useNewsStore } from '../store'
 
-const { Title, Paragraph, Text } = Typography
+const { Text, Paragraph } = Typography
+
+// Use a placeholder image URL (you can replace this with any other default news image URL)
+const DEFAULT_IMAGE_URL = 'https://placehold.co/600x400/e2e8f0/475569?text=News'
 
 interface NewsCardProps {
   article: NewsArticle
 }
 
 const NewsCard: React.FC<NewsCardProps> = ({ article }) => {
-  const { favorites, addToFavorites, removeFromFavorites } = useNewsStore()
+  const { toggleFavorite, isFavorite } = useNewsStore()
+  const [isHovered, setIsHovered] = useState(false)
+  const [isAnimating, setIsAnimating] = useState(false)
   
-  const isFavorite = favorites.some(fav => fav.id === article.id)
-  
-  const toggleFavorite = () => {
-    if (isFavorite) {
-      removeFromFavorites(article.id)
-    } else {
-      addToFavorites(article)
+  const {
+    id,
+    title,
+    description,
+    url,
+    imageUrl,
+    publishedAt,
+    source,
+    author,
+    category = 'general'
+  } = article
+
+  const formattedDate = new Date(publishedAt).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  })
+
+  const categoryColor = {
+    business: 'blue',
+    technology: 'cyan',
+    sports: 'green',
+    entertainment: 'magenta',
+    politics: 'red',
+    world: 'orange',
+    science: 'purple',
+    health: 'lime'
+  }[(category || '').toLowerCase()] || 'default'
+
+  // Format author name to prevent overflow
+  const formatAuthor = (author: string | null) => {
+    if (!author) return null
+    const name = author.replace('By ', '')
+    return name.length > 20 ? `${name.substring(0, 20)}...` : name
+  }
+
+  const isFavorited = isFavorite(id)
+
+  const handleFavoriteClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    setIsAnimating(true)
+    toggleFavorite(article)
+    setTimeout(() => setIsAnimating(false), 500)
+  }
+
+  const handleShare = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    try {
+      await navigator.share({
+        title: title,
+        text: description,
+        url: url
+      })
+    } catch (error) {
+      // Fallback to copying to clipboard
+      navigator.clipboard.writeText(url)
     }
   }
-  
+
   return (
     <Card
-      className="news-card h-full flex flex-col"
+      hoverable
+      className="h-full transition-all duration-300 hover:shadow-md relative group overflow-hidden rounded-xl border-0"
+      bodyStyle={{ padding: '16px' }}
       cover={
-        article.imageUrl ? (
-          <div className="h-48 overflow-hidden">
-            <img
-              alt={article.title}
-              src={article.imageUrl}
-              className="w-full h-full object-cover"
-            />
+        <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
+          <img
+            alt={title}
+            src={imageUrl || DEFAULT_IMAGE_URL}
+            onError={(e) => {
+              const target = e.target as HTMLImageElement
+              target.src = DEFAULT_IMAGE_URL
+            }}
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          
+          {/* Action Buttons */}
+          <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <Tooltip title="Share">
+              <button
+                onClick={handleShare}
+                className="w-10 h-10 rounded-full flex items-center justify-center bg-white/90 backdrop-blur-sm shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105"
+              >
+                <ShareAltOutlined className="text-gray-600 text-lg" />
+              </button>
+            </Tooltip>
+            
+            <Tooltip title={isFavorited ? "Remove from favorites" : "Add to favorites"}>
+              <button
+                onClick={handleFavoriteClick}
+                className={`w-10 h-10 rounded-full flex items-center justify-center
+                  transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105
+                  ${isFavorited ? 'bg-red-500 hover:bg-red-600' : 'bg-white/90 backdrop-blur-sm hover:bg-white'}`}
+              >
+                {isFavorited ? (
+                  <HeartFilled className="text-white text-lg" />
+                ) : (
+                  <HeartOutlined className="text-gray-600 text-lg" />
+                )}
+              </button>
+            </Tooltip>
           </div>
-        ) : (
-          <div className="h-48 bg-gray-200 flex items-center justify-center">
-            <Text type="secondary">No image available</Text>
-          </div>
-        )
+
+          {/* Category Badge */}
+          <Tag 
+            color={categoryColor}
+            className="absolute bottom-4 left-4 m-0 uppercase text-xs tracking-wider font-medium px-3 py-1 rounded-full"
+          >
+            {category || 'General'}
+          </Tag>
+        </div>
       }
-      actions={[
-        <Button 
-          type="text" 
-          icon={isFavorite ? <StarFilled className="text-yellow-500" /> : <StarOutlined />}
-          onClick={toggleFavorite}
-        >
-          {isFavorite ? 'Saved' : 'Save'}
-        </Button>,
-        <Button type="link" href={article.url} target="_blank" rel="noopener noreferrer">
-          Read More
-        </Button>
-      ]}
     >
-      <div className="flex flex-col flex-grow">
-        <Title level={4} className="line-clamp-2">{article.title}</Title>
-        
-        <Space className="mb-2">
-          <Tag color="blue">{article.source.name}</Tag>
-          {article.category && <Tag color="green">{article.category}</Tag>}
-        </Space>
-        
-        <Paragraph className="text-gray-500 line-clamp-3">
-          {article.description || 'No description available'}
-        </Paragraph>
-        
-        <div className="mt-auto pt-2">
-          <Space direction="vertical" size={0} className="w-full">
-            {article.author && (
-              <Text type="secondary" className="text-sm">
-                By {article.author}
-              </Text>
+      <div className="space-y-3">
+        <div className="flex items-center justify-between text-xs text-gray-500">
+          <Text type="secondary" className="font-medium">
+            {source.name}
+          </Text>
+          <Space size={12}>
+            {author && (
+              <Tooltip title={author}>
+                <Space className="truncate max-w-[150px]">
+                  <UserOutlined />
+                  <span className="truncate">{formatAuthor(author)}</span>
+                </Space>
+              </Tooltip>
             )}
-            <Text type="secondary" className="text-sm">
-              {format(new Date(article.publishedAt), 'MMM dd, yyyy')}
-            </Text>
+            <Space>
+              <CalendarOutlined />
+              <span>{formattedDate}</span>
+            </Space>
           </Space>
         </div>
+
+        <a 
+          href={url} 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="block group/title"
+        >
+          <Paragraph
+            strong
+            ellipsis={{ rows: 2 }}
+            className="text-lg mb-2 group-hover/title:text-blue-600 transition-colors duration-300"
+          >
+            {title}
+          </Paragraph>
+        </a>
+
+        <Paragraph
+          type="secondary"
+          ellipsis={{ rows: 2 }}
+          className="text-sm leading-relaxed"
+        >
+          {description}
+        </Paragraph>
       </div>
     </Card>
   )

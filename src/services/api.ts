@@ -23,6 +23,30 @@ const checkApiKey = (key: string | undefined, serviceName: string): boolean => {
   return true
 }
 
+// Add delay utility function
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Add retry logic with exponential backoff
+const fetchWithRetry = async (
+  fn: () => Promise<any>,
+  retries = 3,
+  delay = 1000
+): Promise<any> => {
+  try {
+    return await fn();
+  } catch (error: any) {
+    if (
+      retries > 0 && 
+      error?.response?.status === 429 // Too Many Requests
+    ) {
+      console.log(`Rate limited, retrying in ${delay}ms...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+      return fetchWithRetry(fn, retries - 1, delay * 2);
+    }
+    throw error;
+  }
+};
+
 // NewsAPI service
 export const fetchNewsApiArticles = async (
   query = '',
@@ -147,37 +171,22 @@ export const fetchNYTArticles = async (
   from = '',
   to = ''
 ): Promise<NewsArticle[]> => {
-  if (!checkApiKey(NYT_API_KEY, 'New York Times')) return []
-  
+  if (!checkApiKey(NYT_API_KEY, 'NYT')) return [];
+
   try {
-    const params: Record<string, string> = {
-      'api-key': NYT_API_KEY,
-    }
-    
-    // Combine query and category for NYT
-    const queryParts = []
-    if (query) queryParts.push(query)
-    if (category) queryParts.push(category)
-    params.q = queryParts.join(' ') || 'general'
-    
-    // Add category as a section filter if it matches NYT sections
-    const nytSectionMap: Record<string, string> = {
-      'business': 'Business',
-      'technology': 'Technology',
-      'sports': 'Sports',
-      'entertainment': 'Arts',
-      'politics': 'Politics',
-      'world': 'World',
-      'science': 'Science',
-      'health': 'Health',
-    }
-    
-    if (category && nytSectionMap[category]) {
-      params.fq = `section_name:"${nytSectionMap[category]}"`
-    }
-    
-    const response = await axios.get('https://api.nytimes.com/svc/search/v2/articlesearch.json', {
-      params
+    const response = await fetchWithRetry(async () => {
+      const params = new URLSearchParams({
+        'api-key': NYT_API_KEY,
+        q: query || category || 'general',
+        sort: 'newest'
+      });
+
+      if (from) params.append('begin_date', from.split('T')[0].replace(/-/g, ''));
+      if (to) params.append('end_date', to.split('T')[0].replace(/-/g, ''));
+
+      return await axios.get(
+        `https://api.nytimes.com/svc/search/v2/articlesearch.json?${params}`
+      );
     });
 
     return response.data.response.docs.map((article: any) => ({
@@ -195,13 +204,13 @@ export const fetchNYTArticles = async (
         name: 'The New York Times',
       },
       author: article.byline?.original?.replace('By ', ''),
-      category: article.section_name,
-    }))
+      category: article.section_name?.toLowerCase() || 'general'
+    }));
   } catch (error) {
-    console.error('Error fetching from NYT API:', error)
-    return []
+    console.error('Error fetching from NYT API:', error);
+    return [];
   }
-}
+};
 
 // Function to fetch from all sources
 export const fetchAllNews = async (
@@ -211,13 +220,16 @@ export const fetchAllNews = async (
   to = '',
   sources: NewsSource[] = []
 ): Promise<NewsArticle[]> => {
-  const sourcesToFetch = sources.length > 0 ? sources : ['newsapi', 'guardian', 'nyt']
-  
+  const sourcesToFetch = sources.length > 0 ? sources : ['newsapi', 'guardian', 'nyt'];
   const results: NewsArticle[][] = [];
   
-  // Use for...of to process sequentially instead of Promise.all
+  // Process sources sequentially with delays
   for (const source of sourcesToFetch) {
     try {
+      // Add longer delay for NYT API to respect rate limits
+      const delayTime = source === 'nyt' ? 2000 : 1000;
+      await delay(delayTime);
+      
       let articles: NewsArticle[] = [];
       
       if (source === 'newsapi') {
@@ -229,9 +241,6 @@ export const fetchAllNews = async (
       }
       
       results.push(articles);
-      
-      // Add a small delay between API calls
-      await new Promise(resolve => setTimeout(resolve, 500));
     } catch (error) {
       console.error(`Error fetching from ${source}:`, error);
       results.push([]);

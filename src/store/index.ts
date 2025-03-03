@@ -21,14 +21,14 @@ interface NewsState {
   setSelectedCategory: (category: string) => void
   setSelectedDateRange: (dateRange: [string, string] | null) => void
   setSelectedSources: (sources: NewsSource[]) => void
-  addToFavorites: (article: NewsArticle) => void
-  removeFromFavorites: (articleId: string) => void
+  toggleFavorite: (article: NewsArticle) => void
+  isFavorite: (articleId: string) => boolean
   updateUserPreferences: (preferences: Partial<UserPreferences>) => void
 }
 
 export const useNewsStore = create<NewsState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       articles: [],
       favorites: [],
       isLoading: false,
@@ -52,13 +52,23 @@ export const useNewsStore = create<NewsState>()(
       setSelectedDateRange: (selectedDateRange) => set({ selectedDateRange }),
       setSelectedSources: (selectedSources) => set({ selectedSources }),
       
-      addToFavorites: (article) => set((state) => ({
-        favorites: [...state.favorites.filter(a => a.id !== article.id), article]
-      })),
+      toggleFavorite: (article) => set((state) => {
+        const isFavorited = state.favorites.some(fav => fav.id === article.id)
+        
+        if (isFavorited) {
+          // Remove from favorites
+          return {
+            favorites: state.favorites.filter(fav => fav.id !== article.id)
+          }
+        } else {
+          // Add to favorites
+          return {
+            favorites: [...state.favorites, article]
+          }
+        }
+      }),
       
-      removeFromFavorites: (articleId) => set((state) => ({
-        favorites: state.favorites.filter((article) => article.id !== articleId)
-      })),
+      isFavorite: (articleId) => get().favorites.some(fav => fav.id === articleId),
       
       updateUserPreferences: (preferences) => set((state) => ({
         userPreferences: { ...state.userPreferences, ...preferences }
