@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { Form, Input, Select, DatePicker, Button, Space } from 'antd'
 import { SearchOutlined, FilterOutlined, ClearOutlined } from '@ant-design/icons'
 import { useNewsStore } from '../store'
 import dayjs from 'dayjs'
+import debounce from 'lodash.debounce'
 
 const { RangePicker } = DatePicker
 const { Option } = Select
@@ -42,6 +43,22 @@ const NewsFilters: React.FC = () => {
   const initialDateRange = selectedDateRange 
     ? [dayjs(selectedDateRange[0]), dayjs(selectedDateRange[1])]
     : null
+
+  // Create memoized debounced search handler
+  const debouncedSearch = useMemo(
+    () =>
+      debounce((value: string) => {
+        setSearchQuery(value)
+      }, 500),
+    [setSearchQuery]
+  )
+
+  // Cleanup debounce on unmount
+  useEffect(() => {
+    return () => {
+      debouncedSearch.cancel()
+    }
+  }, [debouncedSearch])
 
   const handleReset = () => {
     // Reset form fields to empty values
@@ -84,7 +101,8 @@ const NewsFilters: React.FC = () => {
             size="large"
             placeholder="Search for news..."
             prefix={<SearchOutlined className="text-gray-400 text-lg" />}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => debouncedSearch(e.target.value)}
+            defaultValue={searchQuery}
             allowClear
             className="rounded-lg text-lg py-2 hover:shadow-sm transition-shadow"
           />

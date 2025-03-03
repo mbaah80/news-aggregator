@@ -18,7 +18,8 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024)
+  const [collapsed, setCollapsed] = useState(false)
   const location = useLocation()
   
   const {
@@ -48,7 +49,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   React.useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768)
+      const newIsMobile = window.innerWidth < 1024
+      setIsMobile(newIsMobile)
+      if (!newIsMobile) {
+        setIsDrawerOpen(false)
+      }
     }
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
@@ -71,6 +76,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     <AntLayout style={{ minHeight: '100vh' }}>
       {!isMobile && (
         <Sider 
+          collapsible
+          collapsed={collapsed}
+          onCollapse={(value) => setCollapsed(value)}
           style={{
             background: '#111827',
             boxShadow: '2px 0 8px 0 rgba(29,35,41,.05)',
@@ -81,8 +89,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         >
           <div className="logo-container px-6 mb-8">
             <div className="text-white font-bold text-xl flex items-center h-12">
-             
-              <span className="ml-3">News Aggregator</span>
+              <span className={`ml-3 ${collapsed ? 'hidden' : ''}`}>News Aggregator</span>
             </div>
           </div>
           {renderMenu()}
