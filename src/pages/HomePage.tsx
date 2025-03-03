@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { Row, Col, Empty, Alert } from 'antd'
+import { Row, Col, Empty, Alert, Card } from 'antd'
 import { useNewsStore } from '../store'
 import NewsCard from '../components/NewsCard'
 import NewsCardSkeleton from '../components/NewsCardSkeleton'
@@ -40,17 +40,28 @@ const HomePage: React.FC = () => {
         ? selectedSources 
         : userPreferences.preferredSources
       
+      const categoryToUse = selectedCategory || userPreferences.preferredCategories[0] || ''
+      
       const dateRange = selectedDateRange || [null, null]
       
       const news = await fetchAllNews(
         searchQuery,
-        selectedCategory,
+        categoryToUse,
         dateRange[0] || '',
         dateRange[1] || '',
         sourcesToUse
       )
       
-      setArticles(news)
+      const filteredNews = userPreferences.preferredAuthors.length > 0
+        ? news.filter(article => 
+            article.author && 
+            userPreferences.preferredAuthors.some(
+              author => article.author?.toLowerCase().includes(author.toLowerCase())
+            )
+          )
+        : news
+      
+      setArticles(filteredNews)
     } catch (err) {
       setError('Failed to fetch news. Please try again later.')
       console.error(err)
@@ -83,29 +94,31 @@ const HomePage: React.FC = () => {
           
           {/* Content Section */}
           <div className="bg-white rounded-xl shadow-sm p-2 sm:p-8">
-            {isLoading ? (
-              <LoadingSkeletons />
-            ) : articles.length > 0 ? (
-              <Row 
-                gutter={[16, 16]} 
-                className="animate-fade-in"
-              >
-                {articles.map(article => (
-                  <Col xs={24} sm={12} lg={8} key={article.id}>
-                    <NewsCard article={article} />
-                  </Col>
-                ))}
-              </Row>
-            ) : (
-              <Empty 
-                description={
-                  <span className="text-gray-500 text-base sm:text-lg">
-                    No news articles found. Try adjusting your filters.
-                  </span>
-                }
-                className="min-h-[300px] sm:min-h-[400px] flex flex-col items-center justify-center"
-              />
-            )}
+            <Card styles={{ body: { padding: 0 } }}>
+              {isLoading ? (
+                <LoadingSkeletons />
+              ) : articles.length > 0 ? (
+                <Row 
+                  gutter={[16, 16]} 
+                  className="animate-fade-in"
+                >
+                  {articles.map(article => (
+                    <Col xs={24} sm={12} lg={8} key={article.id}>
+                      <NewsCard article={article} />
+                    </Col>
+                  ))}
+                </Row>
+              ) : (
+                <Empty 
+                  description={
+                    <span className="text-gray-500 text-base sm:text-lg">
+                      No news articles found. Try adjusting your filters.
+                    </span>
+                  }
+                  className="min-h-[300px] sm:min-h-[400px] flex flex-col items-center justify-center"
+                />
+              )}
+            </Card>
           </div>
         </div>
       </div>

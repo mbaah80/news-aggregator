@@ -1,7 +1,8 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Form, Input, Select, DatePicker, Button, Space } from 'antd'
 import { SearchOutlined, FilterOutlined, ClearOutlined } from '@ant-design/icons'
 import { useNewsStore } from '../store'
+import dayjs from 'dayjs'
 
 const { RangePicker } = DatePicker
 const { Option } = Select
@@ -29,6 +30,7 @@ const NewsFilters: React.FC = () => {
     selectedCategory, 
     selectedDateRange, 
     selectedSources,
+    userPreferences,
     setSearchQuery,
     setSelectedCategory,
     setSelectedDateRange,
@@ -37,13 +39,31 @@ const NewsFilters: React.FC = () => {
   
   const [form] = Form.useForm()
   
+  const initialDateRange = selectedDateRange 
+    ? [dayjs(selectedDateRange[0]), dayjs(selectedDateRange[1])]
+    : null
+
   const handleReset = () => {
-    form.resetFields()
+    // Reset form fields to empty values
+    form.setFieldsValue({
+      query: '',
+      category: '',
+      dateRange: null,
+      sources: []
+    })
+
+    // Reset store state
     setSearchQuery('')
     setSelectedCategory('')
     setSelectedDateRange(null)
     setSelectedSources([])
   }
+  
+  useEffect(() => {
+    if (selectedSources.length === 0 && userPreferences.preferredSources.length > 0) {
+      setSelectedSources(userPreferences.preferredSources)
+    }
+  }, [userPreferences.preferredSources])
   
   return (
     <div className="bg-white rounded-xl shadow-sm p-8 mb-8 transition-all">
@@ -54,7 +74,7 @@ const NewsFilters: React.FC = () => {
         initialValues={{
           query: searchQuery,
           category: selectedCategory,
-          dateRange: selectedDateRange,
+          dateRange: initialDateRange,
           sources: selectedSources
         }}
       >
@@ -133,7 +153,7 @@ const NewsFilters: React.FC = () => {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex justify-end space-x-3">
+        <div className="flex flex-col md:flex-row md:justify-end ">
           <Button 
             size="large"
             icon={<ClearOutlined />}
@@ -147,7 +167,7 @@ const NewsFilters: React.FC = () => {
             size="large"
             icon={<FilterOutlined />}
             onClick={() => form.submit()}
-            className="rounded-lg px-6 hover:shadow-sm transition-shadow"
+            className="rounded-lg px-6 hover:shadow-sm transition-shadow mt-4 md:mt-0"
           >
             Apply Filters
           </Button>

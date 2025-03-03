@@ -5,7 +5,6 @@ const NewsCardSkeleton: React.FC = () => {
   return (
     <Card
       className="h-full overflow-hidden rounded-xl border-0"
-      bodyStyle={{ padding: '16px' }}
       cover={
         <div className="relative aspect-[16/10] bg-gray-200 animate-pulse">
           <div className="absolute bottom-4 left-4">

@@ -1,8 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Layout from './components/Layout'
 import HomePage from './pages/HomePage'
-import FavoritesPage from './pages/FavoritesPage'
-import SettingsPage from './pages/SettingsPage'
+import FavoritesPage from './pages/FavoritesPage.tsx'
+import SettingsPage from './pages/SettingsPage.tsx'
 
 function App() {
   return (

@@ -23,7 +23,8 @@ interface NewsState {
   setSelectedSources: (sources: NewsSource[]) => void
   toggleFavorite: (article: NewsArticle) => void
   isFavorite: (articleId: string) => boolean
-  updateUserPreferences: (preferences: Partial<UserPreferences>) => void
+  updateUserPreferences: (preferences: Partial<UserPreferences>) => UserPreferences
+  toggleDarkMode: () => void
 }
 
 export const useNewsStore = create<NewsState>()(
@@ -70,9 +71,24 @@ export const useNewsStore = create<NewsState>()(
       
       isFavorite: (articleId) => get().favorites.some(fav => fav.id === articleId),
       
-      updateUserPreferences: (preferences) => set((state) => ({
-        userPreferences: { ...state.userPreferences, ...preferences }
+      toggleDarkMode: () => set((state) => ({
+        userPreferences: {
+          ...state.userPreferences,
+          darkMode: !state.userPreferences.darkMode
+        }
       })),
+      
+      updateUserPreferences: (preferences) => {
+        let newPreferences: UserPreferences = {} as UserPreferences
+        
+        set((state) => {
+          newPreferences = { ...state.userPreferences, ...preferences }
+          document.documentElement.classList.toggle('dark', newPreferences.darkMode)
+          return { userPreferences: newPreferences }
+        })
+        
+        return newPreferences
+      },
     }),
     {
       name: 'news-storage',
@@ -80,6 +96,12 @@ export const useNewsStore = create<NewsState>()(
         favorites: state.favorites,
         userPreferences: state.userPreferences
       }),
+      onRehydrateStorage: () => (state) => {
+        // Apply dark mode on page load
+        if (state?.userPreferences.darkMode) {
+          document.documentElement.classList.add('dark')
+        }
+      }
     }
   )
 ) 

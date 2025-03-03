@@ -1,7 +1,8 @@
 import React from 'react'
-import { Form, Switch, Select, Button, Typography, Card, Divider, message } from 'antd'
-import { SaveOutlined } from '@ant-design/icons'
+import { Form, Switch, Select, Button, Typography, Card, Divider, message, Space, Badge } from 'antd'
+import { SaveOutlined, ReloadOutlined } from '@ant-design/icons'
 import { useNewsStore } from '../store'
+import toast from 'react-hot-toast'
 
 const { Title, Paragraph } = Typography
 const { Option } = Select
@@ -20,89 +21,153 @@ const sources = [
 const SettingsPage: React.FC = () => {
   const { userPreferences, updateUserPreferences } = useNewsStore()
   const [form] = Form.useForm()
+  const [loading, setLoading] = React.useState(false)
   
   const handleSubmit = (values: any) => {
-    updateUserPreferences(values)
-    message.success('Settings saved successfully')
+    try {
+      setLoading(true)
+      let updatedPreferences = updateUserPreferences(values)
+       if (updatedPreferences) {
+        toast.success('Settings saved successfully')
+       }
+    } catch (error) {
+      toast.error('Failed to save settings')
+    } finally {
+      setLoading(false)
+    }
+  }
+  
+  const handleReset = () => {
+    const defaultSettings = {
+      preferredSources: ['newsapi'],
+      preferredCategories: [],
+      preferredAuthors: [],
+      darkMode: false
+    }
+    form.setFieldsValue(defaultSettings)
+    message.info('Settings reset to default values')
   }
   
   return (
-    <div>
-      <Title level={2}>Settings</Title>
-      <Paragraph className="text-gray-500 mb-6">
-        Customize your news feed preferences
-      </Paragraph>
+    <div className="max-w-4xl mx-auto py-8 px-4">
+      <div className="mb-8">
+        <Title level={2} className="!mb-2">Personalize Your Experience</Title>
+        <Paragraph className="text-gray-500">
+          Customize how your news feed appears and what content you see
+        </Paragraph>
+      </div>
       
-      <Card>
+      <Card className="shadow-md rounded-lg">
         <Form
           form={form}
           layout="vertical"
           initialValues={userPreferences}
           onFinish={handleSubmit}
+          requiredMark="optional"
+          className="space-y-6"
         >
-          <Divider orientation="left">News Sources</Divider>
-          <Form.Item
-            name="preferredSources"
-            label="Preferred News Sources"
-            rules={[{ required: true, message: 'Please select at least one news source' }]}
-          >
-            <Select
-              mode="multiple"
-              placeholder="Select preferred news sources"
-              options={sources}
-            />
-          </Form.Item>
-          
-          <Divider orientation="left">Categories</Divider>
-          <Form.Item
-            name="preferredCategories"
-            label="Preferred Categories"
-            extra="If none selected, all categories will be shown"
-          >
-            <Select
-              mode="multiple"
-              placeholder="Select preferred categories"
-              allowClear
-            >
-              {categories.map(category => (
-                <Option key={category} value={category}>
-                  {category.charAt(0).toUpperCase() + category.slice(1)}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
-          
-          <Divider orientation="left">Authors</Divider>
-          <Form.Item
-            name="preferredAuthors"
-            label="Preferred Authors"
-            extra="Enter names of authors you want to follow"
-          >
-            <Select
-              mode="tags"
-              placeholder="Add authors"
-              allowClear
-            />
-          </Form.Item>
-          
-          <Divider orientation="left">Appearance</Divider>
-          <Form.Item
-            name="darkMode"
-            label="Dark Mode"
-            valuePropName="checked"
-          >
-            <Switch />
-          </Form.Item>
-          
-          <Form.Item>
-            <Button 
-              type="primary" 
-              htmlType="submit"
-              icon={<SaveOutlined />}
-            >
-              Save Settings
-            </Button>
-          </Form.Item>
+          <div className="space-y-6">
+            <div>
+              <Divider orientation="left" className="!text-gray-400 font-medium">
+                <Badge status="processing" text="News Sources" />
+              </Divider>
+              <Form.Item
+                name="preferredSources"
+                label="Preferred News Sources"
+                rules={[{ required: true, message: 'Please select at least one news source' }]}
+              >
+                <Select
+                  mode="multiple"
+                  placeholder="Select preferred news sources"
+                  options={sources}
+                  className="w-full"
+                />
+              </Form.Item>
+            </div>
+
+            <div>
+              <Divider orientation="left" className="!text-gray-400 font-medium">
+                <Badge status="success" text="Categories" />
+              </Divider>
+              <Form.Item
+                name="preferredCategories"
+                label="Preferred Categories"
+                tooltip="Select categories to filter your news feed. Leave empty to see all categories."
+              >
+                <Select
+                  mode="multiple"
+                  placeholder="Select preferred categories"
+                  allowClear
+                  maxTagCount={5}
+                  className="w-full"
+                >
+                  {categories.map(category => (
+                    <Option key={category} value={category}>
+                      {category.charAt(0).toUpperCase() + category.slice(1)}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </div>
+
+            <div>
+              <Divider orientation="left" className="!text-gray-400 font-medium">
+                <Badge status="warning" text="Authors" />
+              </Divider>
+              <Form.Item
+                name="preferredAuthors"
+                label="Preferred Authors"
+                tooltip="Enter names of authors whose articles you want to prioritize in your feed"
+              >
+                <Select
+                  mode="tags"
+                  placeholder="Add authors"
+                  allowClear
+                  maxTagCount={5}
+                  className="w-full"
+                />
+              </Form.Item>
+            </div>
+
+            {/* <div>
+              <Divider orientation="left" className="!text-gray-400 font-medium">
+                <Badge status="default" text="Appearance" />
+              </Divider>
+              <Form.Item
+                name="darkMode"
+                label="Dark Mode"
+                valuePropName="checked"
+              >
+                <Switch className="bg-gray-300" />
+              </Form.Item>
+            </div> */}
+          </div>
+
+          <div className="pt-4 border-t">
+            <Form.Item className="mb-0">
+              <Space size="middle">
+                <Button 
+                  type="primary" 
+                  htmlType="submit"
+                  icon={<SaveOutlined />}
+                  loading={loading}
+                  size="large"
+                  className="shadow-sm"
+                  
+                >
+                  Save Settings
+                </Button>
+                <Button 
+                  onClick={handleReset}
+                  icon={<ReloadOutlined />}
+                  size="large"
+                  className="shadow-sm"
+                >
+                  Reset to Default
+                </Button>
+              </Space>
+            </Form.Item>
+          </div>
         </Form>
       </Card>
     </div>

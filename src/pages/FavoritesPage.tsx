@@ -1,29 +1,25 @@
 import React from 'react'
-import { Row, Col, Empty, Typography } from 'antd'
+import { Row, Col, Empty } from 'antd'
 import { useNewsStore } from '../store'
 import NewsCard from '../components/NewsCard'
 
-const { Title } = Typography
-
 const FavoritesPage: React.FC = () => {
   const { favorites } = useNewsStore()
-  
+
   return (
-    <div>
-      <Title level={2}>Saved Articles</Title>
-      
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {favorites.length > 0 ? (
         <Row gutter={[16, 16]}>
           {favorites.map(article => (
-            <Col xs={24} sm={12} lg={8} xl={6} key={article.id}>
+            <Col xs={24} sm={12} lg={8} key={article.id}>
               <NewsCard article={article} />
             </Col>
           ))}
         </Row>
       ) : (
         <Empty 
-          description="You haven't saved any articles yet." 
-          className="py-20"
+          description="No favorite articles yet"
+          className="py-16"
         />
       )}
     </div>
