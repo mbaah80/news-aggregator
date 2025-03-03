@@ -6,11 +6,9 @@ import {
   StarOutlined, 
   SettingOutlined,
   MenuUnfoldOutlined,
-  MenuFoldOutlined,
   BellOutlined,
   UserOutlined
 } from '@ant-design/icons'
-import { useNewsStore } from '../store'
 
 const { Header, Sider, Content } = AntLayout
 
@@ -22,7 +20,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   const location = useLocation()
-  const { userPreferences } = useNewsStore()
   
   const {
     token: { colorBgContainer, borderRadiusLG },
@@ -205,41 +202,5 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     </AntLayout>
   )
 }
-
-// Add this CSS to your global styles or as a style tag in your component
-const styles = `
-  .menu-item {
-    margin: 4px 0;
-    border-radius: 6px;
-    transition: all 0.3s ease;
-  }
-
-  .ant-menu-item-selected {
-    background-color: #1d4ed8 !important;
-    border-radius: 6px;
-  }
-
-  .ant-menu-item {
-    height: 48px !important;
-    line-height: 48px !important;
-    margin: 4px 0 !important;
-  }
-
-  .ant-menu-item .ant-menu-item-icon {
-    font-size: 18px;
-  }
-
-  .ant-menu.ant-menu-dark {
-    background: transparent;
-  }
-
-  .ant-menu.ant-menu-dark .ant-menu-item-selected .ant-menu-item-icon {
-    color: #fff;
-  }
-
-  .ant-menu.ant-menu-dark .ant-menu-item:hover {
-    background-color: rgba(59, 130, 246, 0.15) !important;
-  }
-`;
 
 export default Layout 

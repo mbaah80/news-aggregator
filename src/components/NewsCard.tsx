@@ -22,8 +22,6 @@ interface NewsCardProps {
 
 const NewsCard: React.FC<NewsCardProps> = ({ article }) => {
   const { toggleFavorite, isFavorite } = useNewsStore();
-  const [isHovered, setIsHovered] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(false);
 
   const {
     id,
@@ -66,9 +64,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ article }) => {
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    setIsAnimating(true);
     toggleFavorite(article);
-    setTimeout(() => setIsAnimating(false), 500);
   };
 
   const handleShare = async (e: React.MouseEvent) => {
