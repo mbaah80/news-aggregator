@@ -99,3 +99,69 @@ The settings page allows you to customize your news feed. You can:
 - Toggle dark mode
 
 ## Project Structure
+
+```
+news-aggregator/
+├── src/
+│   ├── components/      # Reusable UI components
+│   ├── pages/          # Page components
+│   ├── services/       # API and other services
+│   ├── store/          # Zustand store
+│   ├── types/          # TypeScript types
+│   └── utils/          # Utility functions
+├── public/             # Static assets
+├── .env               # Environment variables
+├── docker-compose.yml # Docker compose configuration
+├── Dockerfile         # Docker build instructions
+├── nginx.conf         # Nginx configuration
+└── package.json       # Project dependencies
+```
+
+## Docker Configuration
+
+### Docker Files
+- `Dockerfile`: Multi-stage build process for production
+- `docker-compose.yml`: Container orchestration
+- `nginx.conf`: Nginx server configuration for serving the app
+
+### Environment Variables
+Create a `.env` file in the project root:
+```env
+VITE_NEWS_API_KEY=your_news_api_key
+VITE_GUARDIAN_API_KEY=your_guardian_api_key
+VITE_NYT_API_KEY=your_nyt_api_key
+```
+
+### Docker Commands
+```bash
+# Build and start the application
+docker-compose up --build
+
+# Run in detached mode
+docker-compose up -d
+
+# Stop the application
+docker-compose down
+
+# View logs
+docker-compose logs -f
+
+# Rebuild without cache
+docker-compose build --no-cache
+```
+
+### Accessing the Application
+Once running, access the application at:
+- http://localhost:8080
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
